@@ -29,9 +29,7 @@ class AgujeroNegro {
         this.massivePosX = massivePosX;
         this.massivePosY = massivePosY;
         this.radioHorizonte = (2 * this.constGravitacionalUniversal * this.masaAgujeroNegro) / Math.pow(this.cVelocity, 2);
-    }
-
-        
+    } 
 }
 
 
@@ -47,14 +45,15 @@ var x_massive = c.width / 2;
 var y_massive = c.height / 2;
 
 
-const massiveObj = new AgujeroNegro(100, 100, 50, x_massive, y_massive);
-const ball = new Bola(c.width / 5, c.height / 5, 0, 0, 15);
+const massiveObj = new AgujeroNegro(100, 1500, 50, x_massive, y_massive);
+const ball = new Bola(c.width / 5, c.height / 1.3, 0, 0, 10);
 
 function gameLoop() {
 
     ctx.clearRect(0, 0, c.width, c.height);
+    actualizarFisica();
     dibujarAgujeroNegro();
-    dibujarBola
+    dibujarBola();
     requestAnimationFrame(gameLoop);
 
 }
@@ -86,3 +85,32 @@ function dibujarBola() {
     ctx.stroke();
 
 }
+
+function actualizarFisica() {
+    //Diferencia de posición en X e Y entre la bola y el agujero negro.
+    var dx = massiveObj.massivePosX - ball.bola_x;
+    var dy = massiveObj.massivePosY - ball.bola_y;
+
+    //Distancia real entre la bola y el agujero negro (Usando pitágoras).
+    var d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+    //Magnitud de la fuerza gravitacional - crece mucho al acercarse.
+    var massiveForce = (massiveObj.constGravitacionalUniversal * massiveObj.masaAgujeroNegro) / (d * d);
+
+    //Aceleración final que se suma a la velocidad de la bola por cada frame.
+    var ax = (dx / d) * massiveForce;
+    var ay = (dy / d) * massiveForce;
+
+    //===================================================================================================
+    
+    //bola_vx/vy = Veloicdad actual de la bola en X e Y - se acumula cada frame
+    ball.bola_vx += ax;
+    ball.bola_vy += ay;
+
+    //Se actualiza la posición de la bola en X e Y con la velocidad actual acumulada en cada frame.
+    ball.bola_x += ball.bola_vx;
+    ball.bola_y += ball.bola_vy;
+
+}
+
+gameLoop();
