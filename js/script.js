@@ -24,8 +24,8 @@ class AgujeroNegro {
     radioVisualAgujeroNegro;
 
     constructor(constGravitacionalUniversal, masaAgujeroNegro, cVelocity, massivePosX, massivePosY, radioVisualAgujeroNegro) {
-        this.constGravitacionalUniversal = constGravitacionalUniversal;
-        this.masaAgujeroNegro = masaAgujeroNegro;
+        this.constGravitacionalUniversal = constGravitacionalUniversal * 100;
+        this.masaAgujeroNegro = masaAgujeroNegro * 100;
         this.cVelocity = cVelocity;
         this.massivePosX = massivePosX;
         this.massivePosY = massivePosY;
@@ -47,14 +47,16 @@ var x_massive = c.width / 2;
 var y_massive = c.height / 2;
 
 
-const massiveObj = new AgujeroNegro(10000, 5000, 50, x_massive, y_massive, 100);
+const massiveObj = new AgujeroNegro(20, 5000, 50, x_massive, y_massive, 110);
 const ball = new Bola(c.width / 5, c.height / 1.3, 0, 0, 10);
 
 var tiempoAnterior = 0;
+var juegoActivo = true;
 
 
 function gameLoop(tiempoActual) {
 
+    if(!juegoActivo) return;
     var dt = (tiempoActual - tiempoAnterior) / 1000;
     tiempoAnterior = tiempoActual;
 
@@ -118,6 +120,11 @@ function actualizarFisica(dt) {
     //Se actualiza la posición de la bola en X e Y con la velocidad actual acumulada en cada frame.
     ball.bola_x += ball.bola_vx * dt;
     ball.bola_y += ball.bola_vy * dt;
+
+    if(d < massiveObj.radioVisualAgujeroNegro) {
+        console.log("Juego terminado");
+        juegoActivo = false;
+    }
 
 }
 
