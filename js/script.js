@@ -47,11 +47,23 @@ var x_massive = c.width / 2;
 var y_massive = c.height / 2;
 
 
-const massiveObj = new AgujeroNegro(20, 5000, 50, x_massive, y_massive, 110);
-const ball = new Bola(c.width / 5, c.height / 1.3, 0, 0, 10);
+const massiveObj = new AgujeroNegro(1, 5000, 50, x_massive, y_massive, 110);
+const ball = new Bola(c.width / 4, c.height / 1.3, 0, 0, 10);
 
 var tiempoAnterior = 0;
 var juegoActivo = true;
+var bolaLanzada = false;
+
+var mouseDownX = 0;
+var mouseDownY = 0;
+var isClicked = false;
+var factorLanzamiento = 20;
+var mouseCurrentX = 0;
+var mouseCurrentY = 0;
+
+c.addEventListener('mousedown', manageMouseDown);
+c.addEventListener('mouseup', manageMouseUp);
+c.addEventListener('mousemove', manageMouseMove);
 
 
 function gameLoop(tiempoActual) {
@@ -64,6 +76,7 @@ function gameLoop(tiempoActual) {
     actualizarFisica(dt);
     dibujarAgujeroNegro();
     dibujarBola();
+    manageMouseDown();
     requestAnimationFrame(gameLoop);
 }
 
@@ -95,37 +108,85 @@ function dibujarBola() {
 
 }
 
+function dibujarLineaDireccionLanzamiento() {
+
+    ctx.beginPath();
+    ctx.moveTo(mouseDownX, mouseDownY);
+
+
+}
+
 function actualizarFisica(dt) {
 
-    //Diferencia de posición en X e Y entre la bola y el agujero negro.
-    var dx = massiveObj.massivePosX - ball.bola_x;
-    var dy = massiveObj.massivePosY - ball.bola_y;
+    if (bolaLanzada) {
+        //Diferencia de posición en X e Y entre la bola y el agujero negro.
+        var dx = massiveObj.massivePosX - ball.bola_x;
+        var dy = massiveObj.massivePosY - ball.bola_y;
 
-    //Distancia real entre la bola y el agujero negro (Usando pitágoras).
-    var d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+        //Distancia real entre la bola y el agujero negro (Usando pitágoras).
+        var d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
 
-    //Magnitud de la fuerza gravitacional - crece mucho al acercarse.
-    var massiveForce = (massiveObj.constGravitacionalUniversal * massiveObj.masaAgujeroNegro) / (d * d);
+        //Magnitud de la fuerza gravitacional - crece mucho al acercarse.
+        var massiveForce = (massiveObj.constGravitacionalUniversal * massiveObj.masaAgujeroNegro) / (d * d);
 
-    //Aceleración final que se suma a la velocidad de la bola por cada frame.
-    var ax = (dx / d) * massiveForce;
-    var ay = (dy / d) * massiveForce;
+        //Aceleración final que se suma a la velocidad de la bola por cada frame.
+        var ax = (dx / d) * massiveForce;
+        var ay = (dy / d) * massiveForce;
 
-    //===================================================================================================
-    
-    //bola_vx/vy = Veloicdad actual de la bola en X e Y - se acumula cada frame
-    ball.bola_vx += ax * dt;
-    ball.bola_vy += ay * dt;
+        //===================================================================================================
 
-    //Se actualiza la posición de la bola en X e Y con la velocidad actual acumulada en cada frame.
-    ball.bola_x += ball.bola_vx * dt;
-    ball.bola_y += ball.bola_vy * dt;
+        //bola_vx/vy = Veloicdad actual de la bola en X e Y - se acumula cada frame
+        ball.bola_vx += ax * dt;
+        ball.bola_vy += ay * dt;
 
-    if(d < massiveObj.radioVisualAgujeroNegro) {
-        console.log("Juego terminado");
-        juegoActivo = false;
+        var velocidadMaxima = 300;
+        ball.bola_vx = Math.max(-velocidadMaxima, Math.min(velocidadMaxima, ball.bola_vx));
+        ball.bola_vy = Math.max(-velocidadMaxima, Math.min(velocidadMaxima, ball.bola_vy));
+
+        //Se actualiza la posición de la bola en X e Y con la velocidad actual acumulada en cada frame.
+        ball.bola_x += ball.bola_vx * dt;
+        ball.bola_y += ball.bola_vy * dt;
+
+        if (d < massiveObj.radioVisualAgujeroNegro) {
+            console.log("Juego terminado");
+            juegoActivo = false;
+        }
     }
 
+}
+
+function manageMouseDown(e) {
+
+    mouseDownX = e.clientX;
+    mouseDownY = e.clientY;
+
+    dx = mouseDownX - ball.bola_x;
+    dy = mouseDownY - ball.bola_y;
+
+    d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+    if(d < ball.bola_radio) {
+        isClicked = true;
+    }
+
+}
+
+function manageMouseUp(e) {
+
+    if(bolaLanzada) return;
+    if(!isClicked) return;
+
+    ball.bola_vx = (mouseDownX - e.clientX) * factorLanzamiento;
+    ball.bola_vy = (mouseDownY - e.clientY) * factorLanzamiento;
+
+    isClicked = false;
+    bolaLanzada = true;
+
+}
+
+function manageMouseMove(e) {
+    mouseCurrentX = e.clientX;
+    mouseCurrentY = e.clientY;
 }
 
 requestAnimationFrame(gameLoop);
