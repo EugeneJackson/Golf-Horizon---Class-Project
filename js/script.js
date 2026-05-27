@@ -76,7 +76,6 @@ function gameLoop(tiempoActual) {
     actualizarFisica(dt);
     dibujarAgujeroNegro();
     dibujarBola();
-    manageMouseDown();
     requestAnimationFrame(gameLoop);
 }
 
@@ -105,14 +104,6 @@ function dibujarBola() {
     ctx.arc(ball.bola_x, ball.bola_y, ball.bola_radio, 0, 2 * Math.PI);
     ctx.fill();
     ctx.stroke();
-
-}
-
-function dibujarLineaDireccionLanzamiento() {
-
-    ctx.beginPath();
-    ctx.moveTo(mouseDownX, mouseDownY);
-
 
 }
 
