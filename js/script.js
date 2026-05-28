@@ -1,3 +1,8 @@
+/////////////////////////////////
+//CLASES
+/////////////////////////////////
+
+
 class Bola {
     bola_x;
     bola_y;
@@ -33,6 +38,9 @@ class AgujeroNegro {
     } 
 }
 
+/////////////////////////////////
+//MAIN
+/////////////////////////////////
 
 
 //Dibujo base del canvas
@@ -64,6 +72,10 @@ c.addEventListener('mousedown', manageMouseDown);
 c.addEventListener('mouseup', manageMouseUp);
 c.addEventListener('mousemove', manageMouseMove);
 
+/////////////////////////////////
+//gameLoop principal, funcion recursiva
+/////////////////////////////////
+
 
 function gameLoop(tiempoActual) {
 
@@ -81,6 +93,10 @@ function gameLoop(tiempoActual) {
     ctx.lineWidth = 1;
     requestAnimationFrame(gameLoop);
 }
+
+/////////////////////////////////
+//FUNCIONES DE DIBUJO
+/////////////////////////////////
 
 
 function dibujarAgujeroNegro() {
@@ -126,6 +142,9 @@ function dibujarLineaDireccionLanzamiento() {
     ctx.stroke();
 }
 
+/////////////////////////////////
+//FUNCION DE DIBUJO + FISICA
+/////////////////////////////////
 
 function dibujarPuntosPredictivos() {
 
@@ -174,6 +193,10 @@ function dibujarPuntosPredictivos() {
     }
 }
 
+/////////////////////////////////
+//FUNCION FISICA PRINCIPAL
+/////////////////////////////////
+
 function actualizarFisica(dt) {
 
     if (bolaLanzada) {
@@ -213,7 +236,9 @@ function actualizarFisica(dt) {
 
 }
 
-
+/////////////////////////////////
+//MANEJO DE EVENTOS
+/////////////////////////////////
 
 function manageMouseDown(e) {
 
@@ -252,6 +277,6 @@ function manageMouseUp(e) {
 function manageMouseMove(e) {
     mouseCurrentX = e.clientX;
     mouseCurrentY = e.clientY;
-}
+}   
 
 requestAnimationFrame(gameLoop);
