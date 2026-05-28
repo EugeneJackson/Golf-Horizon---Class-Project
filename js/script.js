@@ -12,7 +12,6 @@ class Bola {
         this.bola_vy = bola_vy;
         this.bola_radio = bola_radio;
     }
-
 }
 
 class AgujeroNegro {
@@ -24,8 +23,8 @@ class AgujeroNegro {
     radioVisualAgujeroNegro;
 
     constructor(constGravitacionalUniversal, masaAgujeroNegro, cVelocity, massivePosX, massivePosY, radioVisualAgujeroNegro) {
-        this.constGravitacionalUniversal = constGravitacionalUniversal * 100;
-        this.masaAgujeroNegro = masaAgujeroNegro * 100;
+        this.constGravitacionalUniversal = constGravitacionalUniversal;
+        this.masaAgujeroNegro = masaAgujeroNegro;
         this.cVelocity = cVelocity;
         this.massivePosX = massivePosX;
         this.massivePosY = massivePosY;
@@ -47,7 +46,7 @@ var x_massive = c.width / 2;
 var y_massive = c.height / 2;
 
 
-const massiveObj = new AgujeroNegro(1, 5000, 50, x_massive, y_massive, 110);
+const massiveObj = new AgujeroNegro(100, 500000, 50, x_massive, y_massive, 110);
 const ball = new Bola(c.width / 4, c.height / 1.3, 0, 0, 10);
 
 var tiempoAnterior = 0;
@@ -57,7 +56,7 @@ var bolaLanzada = false;
 var mouseDownX = 0;
 var mouseDownY = 0;
 var isClicked = false;
-var factorLanzamiento = 20;
+var factorLanzamiento = 4;
 var mouseCurrentX = 0;
 var mouseCurrentY = 0;
 
@@ -76,6 +75,10 @@ function gameLoop(tiempoActual) {
     actualizarFisica(dt);
     dibujarAgujeroNegro();
     dibujarBola();
+    dibujarLineaDireccionLanzamiento();
+    dibujarPuntosPredictivos();
+    ctx.strokeStyle = 'black'
+    ctx.lineWidth = 1;
     requestAnimationFrame(gameLoop);
 }
 
@@ -107,6 +110,70 @@ function dibujarBola() {
 
 }
 
+function dibujarLineaDireccionLanzamiento() {
+
+    //Primero se comprueba si el booleano isClicked es verdadero o falso, si no lo es, no hace nada.
+
+    if(!isClicked) return;
+
+
+    //Empieza en X e Y de donde haya clickado el usuario y se mueve por el valor de mouseCurrentX e Y, que se actualiza todo el rato.
+    ctx.beginPath();
+    ctx.moveTo(ball.bola_x, ball.bola_y);
+    ctx.lineTo(mouseCurrentX, mouseCurrentY);
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 5;
+    ctx.stroke();
+}
+
+
+function dibujarPuntosPredictivos() {
+
+    if(!isClicked) return;
+
+    var radioBolasPredictivas = 3.2;
+
+    var simVx = (mouseDownX - mouseCurrentX) * factorLanzamiento;
+    var simVy = (mouseDownY - mouseCurrentY) * factorLanzamiento;
+    var simX = ball.bola_x;
+    var simY = ball.bola_y;
+
+    for(var i = 0; i < 5; i++) {
+
+        //Calcular la distancia entre las bolas predictivas y el agujero negro.
+        dx = massiveObj.massivePosX - simX;
+        dy = massiveObj.massivePosY - simY;
+
+        //Diferencia real entre las bolas predictivas y el agujero negro. (Usando pitágoras);
+        d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+        //Magnitud de la fuerza gravitacional - crece mucho al acercarse.
+        massiveForce = (massiveObj.constGravitacionalUniversal * massiveObj.masaAgujeroNegro) / (d * d);
+
+        //Aceleración final que se suma a la velocidad de la bola por cada frame.
+        var simAx = (dx / d) * massiveForce;
+        var simAy = (dy / d) * massiveForce;
+
+        //Velocidad actual de la bola en X e Y - se acumula cada frame.
+        simVx += simAx * 0.1;
+        simVy += simAy * 0.1;
+
+        simX += simVx * 0.1;
+        simY += simVy * 0.1;
+
+        if(radioBolasPredictivas <= 1) break;
+
+        ctx.fillStyle = 'red';
+        ctx.beginPath();
+        ctx.arc(simX, simY, radioBolasPredictivas, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+
+        radioBolasPredictivas -= 0.5;
+
+    }
+}
+
 function actualizarFisica(dt) {
 
     if (bolaLanzada) {
@@ -130,7 +197,7 @@ function actualizarFisica(dt) {
         ball.bola_vx += ax * dt;
         ball.bola_vy += ay * dt;
 
-        var velocidadMaxima = 300;
+        var velocidadMaxima = 500;
         ball.bola_vx = Math.max(-velocidadMaxima, Math.min(velocidadMaxima, ball.bola_vx));
         ball.bola_vy = Math.max(-velocidadMaxima, Math.min(velocidadMaxima, ball.bola_vy));
 
@@ -146,6 +213,8 @@ function actualizarFisica(dt) {
 
 }
 
+
+
 function manageMouseDown(e) {
 
     mouseDownX = e.clientX;
@@ -156,8 +225,13 @@ function manageMouseDown(e) {
 
     d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
 
-    if(d < ball.bola_radio) {
+    if(d < ball.bola_radio * 4) {
         isClicked = true;
+
+        ball.bola_vx = 0;
+        ball.bola_vy = 0;
+
+        bolaLanzada = false;
     }
 
 }
