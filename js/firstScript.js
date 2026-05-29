@@ -53,14 +53,6 @@ c.height = window.innerHeight;
 var x_massive = c.width / 2;
 var y_massive = c.height / 2;
 
-var massiveObjArr = [];
-var ballsArr = [];
-
-var bolaSeleccionada = null;
-
-massiveObjArr.push(new AgujeroNegro(100, 500000, 50, x_massive, y_massive, 110));
-ballsArr.push(new Bola(c.width / 4, c.height / 1.3, 0, 0, 10));
-
 
 const massiveObj = new AgujeroNegro(100, 500000, 50, x_massive, y_massive, 110);
 const ball = new Bola(c.width / 4, c.height / 1.3, 0, 0, 10);
@@ -109,33 +101,28 @@ function gameLoop(tiempoActual) {
 
 function dibujarAgujeroNegro() {
 
-    for (var i = 0; i < massiveObjArr.length; i++) {
-        //Dibujo base del agujero negro.
-        ctx.fillStyle = 'black';
-        ctx.beginPath();
+    //Dibujo base del agujero negro.
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
 
-        /*
-        * ctx.arc dibuja el circulo con varios parametros:
-        * 2 primeros parametros: X e Y dentro del canvas para posicionarlo.
-        * 3 parametro: radio del circulo.
-        * 4 y 5 parametro: ángulo de inicio y fin.
-        */
-        ctx.arc(massiveObjArr[i].massivePosX, massiveObjArr[i].massivePosY, massiveObjArr[i].radioVisualAgujeroNegro, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.stroke();
-    }
+    /*
+    * ctx.arc dibuja el circulo con varios parametros:
+    * 2 primeros parametros: X e Y dentro del canvas para posicionarlo.
+    * 3 parametro: radio del circulo.
+    * 4 y 5 parametro: ángulo de inicio y fin.
+    */
+    ctx.arc(massiveObj.massivePosX, massiveObj.massivePosY, massiveObj.radioVisualAgujeroNegro, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
 }
 
 function dibujarBola() {
+    ctx.fillStyle = '#7EBDC2';
+    ctx.beginPath();
 
-    for (var i = 0; i < ballsArr.length; i++) {
-        ctx.fillStyle = '#7EBDC2';
-        ctx.beginPath();
-
-        ctx.arc(ballsArr[i].bola_x, ballsArr[i].bola_y, ballsArr[i].bola_radio, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.stroke();
-    }
+    ctx.arc(ball.bola_x, ball.bola_y, ball.bola_radio, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
 
 }
 
@@ -167,34 +154,24 @@ function dibujarPuntosPredictivos() {
 
     var simVx = (mouseDownX - mouseCurrentX) * factorLanzamiento;
     var simVy = (mouseDownY - mouseCurrentY) * factorLanzamiento;
-    var simX = bolaSeleccionada.bola_x;
-    var simY = bolaSeleccionada.bola_y;
+    var simX = ball.bola_x;
+    var simY = ball.bola_y;
 
     for(var i = 0; i < 5; i++) {
 
-        var simAx = 0;
-        var simAy = 0;
+        //Calcular la distancia entre las bolas predictivas y el agujero negro.
+        dx = massiveObj.massivePosX - simX;
+        dy = massiveObj.massivePosY - simY;
 
+        //Diferencia real entre las bolas predictivas y el agujero negro. (Usando pitágoras);
+        d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
 
-        for (var j = 0; j < massiveObjArr.length; j++) {
+        //Magnitud de la fuerza gravitacional - crece mucho al acercarse.
+        massiveForce = (massiveObj.constGravitacionalUniversal * massiveObj.masaAgujeroNegro) / (d * d);
 
-            //Calcular la distancia entre las bolas predictivas y el agujero negro.
-            dx = massiveObjArr[j].massivePosX - simX;
-            dy = massiveObjArr[j].massivePosY - simY;
-
-            //Diferencia real entre las bolas predictivas y el agujero negro. (Usando pitágoras);
-            d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-
-            //Magnitud de la fuerza gravitacional - crece mucho al acercarse.
-            massiveForce = (massiveObjArr[j].constGravitacionalUniversal * massiveObjArr[j].masaAgujeroNegro) / (d * d);
-
-            //Aceleración final que se suma a la velocidad de la bola por cada frame.
-            simAx += (dx / d) * massiveForce;
-            simAy += (dy / d) * massiveForce;
-
-        }
-
-        
+        //Aceleración final que se suma a la velocidad de la bola por cada frame.
+        var simAx = (dx / d) * massiveForce;
+        var simAy = (dy / d) * massiveForce;
 
         //Velocidad actual de la bola en X e Y - se acumula cada frame.
         simVx += simAx * 0.1;
@@ -223,47 +200,40 @@ function dibujarPuntosPredictivos() {
 function actualizarFisica(dt) {
 
     if (bolaLanzada) {
+        //Diferencia de posición en X e Y entre la bola y el agujero negro.
+        var dx = massiveObj.massivePosX - ball.bola_x;
+        var dy = massiveObj.massivePosY - ball.bola_y;
 
-        for (var i = 0; i < ballsArr.length; i++) {
+        //Distancia real entre la bola y el agujero negro (Usando pitágoras).
+        var d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
 
-            var ax = 0;
-            var ay = 0;
+        //Magnitud de la fuerza gravitacional - crece mucho al acercarse.
+        var massiveForce = (massiveObj.constGravitacionalUniversal * massiveObj.masaAgujeroNegro) / (d * d);
 
-            for (var j = 0; j < massiveObjArr.length; j++) {
+        //Aceleración final que se suma a la velocidad de la bola por cada frame.
+        var ax = (dx / d) * massiveForce;
+        var ay = (dy / d) * massiveForce;
 
-                //Diferencia de posición en X e Y entre la bola y el agujero negro.
-                var dx = massiveObjArr[j].massivePosX - ballsArr[i].bola_x;
-                var dy = massiveObjArr[j].massivePosY - ballsArr[i].bola_y;
+        //===================================================================================================
 
-                //Distancia real entre la bola y el agujero negro (Usando pitágoras).
-                var d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+        //bola_vx/vy = Veloicdad actual de la bola en X e Y - se acumula cada frame
+        ball.bola_vx += ax * dt;
+        ball.bola_vy += ay * dt;
 
-                //Magnitud de la fuerza gravitacional - crece mucho al acercarse.
-                var massiveForce = (massiveObjArr[j].constGravitacionalUniversal * massiveObjArr[j].masaAgujeroNegro) / (d * d);
+        var velocidadMaxima = 500;
+        ball.bola_vx = Math.max(-velocidadMaxima, Math.min(velocidadMaxima, ball.bola_vx));
+        ball.bola_vy = Math.max(-velocidadMaxima, Math.min(velocidadMaxima, ball.bola_vy));
 
-                //Aceleración final que se suma a la velocidad de la bola por cada frame.
-                ax += (dx / d) * massiveForce;
-                ay += (dy / d) * massiveForce;
+        //Se actualiza la posición de la bola en X e Y con la velocidad actual acumulada en cada frame.
+        ball.bola_x += ball.bola_vx * dt;
+        ball.bola_y += ball.bola_vy * dt;
 
-                if (d < massiveObjArr[j].radioVisualAgujeroNegro) {
-                    console.log("Juego terminado");
-                    juegoActivo = false;
-                }
-            }
-
-            //bola_vx/vy = Veloicdad actual de la bola en X e Y - se acumula cada frame
-            ballsArr[i].bola_vx += ax * dt;
-            ballsArr[i].bola_vy += ay * dt;
-
-            var velocidadMaxima = 500;
-            ballsArr[i].bola_vx = Math.max(-velocidadMaxima, Math.min(velocidadMaxima, ballsArr[i].bola_vx));
-            ballsArr[i].bola_vy = Math.max(-velocidadMaxima, Math.min(velocidadMaxima, ballsArr[i].bola_vy));
-            
-            //Se actualiza la posición de la bola en X e Y con la velocidad actual acumulada en cada frame.
-            ballsArr[i].bola_x += ballsArr[i].bola_vx * dt;
-            ballsArr[i].bola_y += ballsArr[i].bola_vy * dt;
+        if (d < massiveObj.radioVisualAgujeroNegro) {
+            console.log("Juego terminado");
+            juegoActivo = false;
         }
     }
+
 }
 
 /////////////////////////////////
@@ -275,34 +245,29 @@ function manageMouseDown(e) {
     mouseDownX = e.clientX;
     mouseDownY = e.clientY;
 
-    for (var i = 0; i < ballsArr.length; i++) {
+    dx = mouseDownX - ball.bola_x;
+    dy = mouseDownY - ball.bola_y;
 
-        dx = mouseDownX - ballsArr[i].bola_x;
-        dy = mouseDownY - ballsArr[i].bola_y;
+    d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
 
-        d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+    if(d < ball.bola_radio * 4) {
+        isClicked = true;
 
-        if (d < ballsArr[i].bola_radio * 4) {
-            isClicked = true;
-            bolaSeleccionada = ballsArr[i];
+        ball.bola_vx = 0;
+        ball.bola_vy = 0;
 
-            bolaSeleccionada.bola_vx = 0;
-            bolaSeleccionada.bola_vy = 0;
-
-            bolaLanzada = false;
-        }
+        bolaLanzada = false;
     }
 
 }
 
 function manageMouseUp(e) {
 
-    if (bolaLanzada) return;
-    if (!isClicked) return;
+    if(bolaLanzada) return;
+    if(!isClicked) return;
 
-
-    bolaSeleccionada.bola_vx = (mouseDownX - e.clientX) * factorLanzamiento;
-    bolaSeleccionada.bola_vy = (mouseDownY - e.clientY) * factorLanzamiento;
+    ball.bola_vx = (mouseDownX - e.clientX) * factorLanzamiento;
+    ball.bola_vy = (mouseDownY - e.clientY) * factorLanzamiento;
 
     isClicked = false;
     bolaLanzada = true;
