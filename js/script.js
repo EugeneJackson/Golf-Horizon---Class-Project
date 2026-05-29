@@ -61,10 +61,6 @@ var bolaSeleccionada = null;
 massiveObjArr.push(new AgujeroNegro(100, 500000, 50, x_massive, y_massive, 110));
 ballsArr.push(new Bola(c.width / 4, c.height / 1.3, 0, 0, 10));
 
-
-const massiveObj = new AgujeroNegro(100, 500000, 50, x_massive, y_massive, 110);
-const ball = new Bola(c.width / 4, c.height / 1.3, 0, 0, 10);
-
 var tiempoAnterior = 0;
 var juegoActivo = true;
 var bolaLanzada = false;
@@ -143,12 +139,13 @@ function dibujarLineaDireccionLanzamiento() {
 
     //Primero se comprueba si el booleano isClicked es verdadero o falso, si no lo es, no hace nada.
 
-    if(!isClicked) return;
+    if (!isClicked) return;
 
 
     //Empieza en X e Y de donde haya clickado el usuario y se mueve por el valor de mouseCurrentX e Y, que se actualiza todo el rato.
+
     ctx.beginPath();
-    ctx.moveTo(ball.bola_x, ball.bola_y);
+    ctx.moveTo(bolaSeleccionada.bola_x, bolaSeleccionada.bola_y);
     ctx.lineTo(mouseCurrentX, mouseCurrentY);
     ctx.strokeStyle = 'white';
     ctx.lineWidth = 5;
@@ -163,7 +160,7 @@ function dibujarPuntosPredictivos() {
 
     if(!isClicked) return;
 
-    var radioBolasPredictivas = 3.2;
+    var radioBolasPredictivas = 3;
 
     var simVx = (mouseDownX - mouseCurrentX) * factorLanzamiento;
     var simVy = (mouseDownY - mouseCurrentY) * factorLanzamiento;
