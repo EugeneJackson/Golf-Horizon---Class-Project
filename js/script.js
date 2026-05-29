@@ -56,14 +56,19 @@ var y_massive = c.height / 2;
 var massiveObjArr = [];
 var ballsArr = [];
 
-var bolaSeleccionada = null;
 
 massiveObjArr.push(new AgujeroNegro(100, 500000, 50, x_massive, y_massive, 110));
 ballsArr.push(new Bola(c.width / 4, c.height / 1.3, 0, 0, 10));
 
+var bolaSeleccionada = null;
 var tiempoAnterior = 0;
 var juegoActivo = true;
 var bolaLanzada = false;
+
+var activeMode = "throw";
+var throwButton = document.getElementById("throwButton");
+var addMassive = document.getElementById("addMassiveButton")
+var addBall = document.getElementById("addBallButton");
 
 var mouseDownX = 0;
 var mouseDownY = 0;
@@ -72,9 +77,17 @@ var factorLanzamiento = 4;
 var mouseCurrentX = 0;
 var mouseCurrentY = 0;
 
+/////////////////////////////////
+//EVENTS - LISTENERS
+/////////////////////////////////
+
 c.addEventListener('mousedown', manageMouseDown);
 c.addEventListener('mouseup', manageMouseUp);
 c.addEventListener('mousemove', manageMouseMove);
+
+throwButton.addEventListener('mousedown', manageThrowButton)
+addMassive.addEventListener('mousedown', manageAddMassiveButton)
+addBall.addEventListener('mousedown', manageAddBallButton)
 
 /////////////////////////////////
 //gameLoop principal, funcion recursiva
@@ -272,24 +285,37 @@ function manageMouseDown(e) {
     mouseDownX = e.clientX;
     mouseDownY = e.clientY;
 
-    for (var i = 0; i < ballsArr.length; i++) {
+    switch (activeMode) {
+        case "throw":
 
-        dx = mouseDownX - ballsArr[i].bola_x;
-        dy = mouseDownY - ballsArr[i].bola_y;
+            for (var i = 0; i < ballsArr.length; i++) {
 
-        d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+                dx = mouseDownX - ballsArr[i].bola_x;
+                dy = mouseDownY - ballsArr[i].bola_y;
 
-        if (d < ballsArr[i].bola_radio * 4) {
-            isClicked = true;
-            bolaSeleccionada = ballsArr[i];
+                d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
 
-            bolaSeleccionada.bola_vx = 0;
-            bolaSeleccionada.bola_vy = 0;
+                if (d < ballsArr[i].bola_radio * 4) {
+                    isClicked = true;
+                    bolaSeleccionada = ballsArr[i];
 
-            bolaLanzada = false;
-        }
+                    bolaSeleccionada.bola_vx = 0;
+                    bolaSeleccionada.bola_vy = 0;
+
+                    bolaLanzada = false;
+                }
+            }
+
+            break;
+        case "addMassive":
+            console.log("Creando Massive");
+            activeMode = "throw";
+            break;
+        case "addBall":
+            console.log("Creando bola");
+            activeMode = "throw";
+            break;
     }
-
 }
 
 function manageMouseUp(e) {
@@ -307,8 +333,32 @@ function manageMouseUp(e) {
 }
 
 function manageMouseMove(e) {
+
     mouseCurrentX = e.clientX;
     mouseCurrentY = e.clientY;
+    
 }   
+
+
+function manageThrowButton(e) {
+
+    activeMode = "throw";
+    e.stopPropagation();
+
+}
+
+function manageAddMassiveButton(e) {
+
+    activeMode = "addMassive";
+    e.stopPropagation();
+
+}
+
+function manageAddBallButton(e) {
+
+    activeMode = "addBall";
+    e.stopPropagation();
+
+}
 
 requestAnimationFrame(gameLoop);
