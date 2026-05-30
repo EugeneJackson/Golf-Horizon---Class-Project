@@ -9,6 +9,7 @@ class Bola {
     bola_vx;
     bola_vy;
     bola_radio;
+    lanzada;
 
     constructor(bola_x, bola_y, bola_vx, bola_vy, bola_radio) {
         this.bola_x = bola_x;
@@ -16,6 +17,7 @@ class Bola {
         this.bola_vx = bola_vx;
         this.bola_vy = bola_vy;
         this.bola_radio = bola_radio;
+        this.lanzada = false;
     }
 }
 
@@ -35,7 +37,7 @@ class AgujeroNegro {
         this.massivePosY = massivePosY;
         this.radioHorizonte = (2 * this.constGravitacionalUniversal * this.masaAgujeroNegro) / Math.pow(this.cVelocity, 2);
         this.radioVisualAgujeroNegro = radioVisualAgujeroNegro;
-    } 
+    }
 }
 
 /////////////////////////////////
@@ -64,6 +66,9 @@ var bolaSeleccionada = null;
 var tiempoAnterior = 0;
 var juegoActivo = true;
 var bolaLanzada = false;
+var selectedObject = null;
+var draggedObject = null;
+var isDragging = false;
 
 var activeMode = "throw";
 var throwButton = document.getElementById("throwButton");
@@ -77,6 +82,7 @@ var factorLanzamiento = 4;
 var mouseCurrentX = 0;
 var mouseCurrentY = 0;
 
+
 /////////////////////////////////
 //EVENTS - LISTENERS
 /////////////////////////////////
@@ -84,10 +90,50 @@ var mouseCurrentY = 0;
 c.addEventListener('mousedown', manageMouseDown);
 c.addEventListener('mouseup', manageMouseUp);
 c.addEventListener('mousemove', manageMouseMove);
+c.addEventListener('contextmenu', manageRightClick);
 
 throwButton.addEventListener('mousedown', manageThrowButton)
 addMassive.addEventListener('mousedown', manageAddMassiveButton)
 addBall.addEventListener('mousedown', manageAddBallButton)
+
+document.getElementById("sliderRadioBall").addEventListener('input', function (e) {
+    selectedObject.bola_radio = e.target.value;
+    document.getElementById("valorRadioBall").textContent = e.target.value;
+});
+
+document.getElementById("visualRadioMassive").addEventListener('input', function (e) {
+    selectedObject.radioVisualAgujeroNegro = e.target.value;
+    document.getElementById("valueRadioMassive").textContent = e.target.value;
+});
+
+document.getElementById("massMassive").addEventListener('input', function (e) {
+    selectedObject.masaAgujeroNegro = e.target.value;
+    document.getElementById("valueMassMassive").textContent = e.target.value;
+})
+
+document.getElementById("gravitationalConstMassive").addEventListener('input', function (e) {
+    selectedObject.constGravitacionalUniversal = e.target.value;
+    document.getElementById("valueGravitationalConstMassive").textContent = e.target.value;
+})
+
+document.getElementById("cVelocityMassive").addEventListener('input', function (e) {
+    selectedObject.cVelocity = e.target.value;
+    document.getElementById("valueCVelocityMassive").textContent = e.target.value;
+})
+
+document.getElementById("deleteBallButton").addEventListener('click', function (e) {
+    var index = ballsArr.indexOf(selectedObject);
+    ballsArr.splice(index, 1);
+    selectedObject = null;
+    document.getElementById("ballMenu").style.display = "none";
+})
+
+document.getElementById("deleteMassiveButton").addEventListener('click', function (e) {
+    var index = massiveObjArr.indexOf(selectedObject);
+    massiveObjArr.splice(index, 1);
+    selectedObject = null;
+    document.getElementById("massiveMenu").style.display = "none";
+})
 
 /////////////////////////////////
 //gameLoop principal, funcion recursiva
@@ -96,7 +142,7 @@ addBall.addEventListener('mousedown', manageAddBallButton)
 
 function gameLoop(tiempoActual) {
 
-    if(!juegoActivo) return;
+    if (!juegoActivo) return;
     var dt = (tiempoActual - tiempoAnterior) / 1000;
     tiempoAnterior = tiempoActual;
 
@@ -171,7 +217,7 @@ function dibujarLineaDireccionLanzamiento() {
 
 function dibujarPuntosPredictivos() {
 
-    if(!isClicked) return;
+    if (!isClicked) return;
 
     var radioBolasPredictivas = 3;
 
@@ -180,7 +226,7 @@ function dibujarPuntosPredictivos() {
     var simX = bolaSeleccionada.bola_x;
     var simY = bolaSeleccionada.bola_y;
 
-    for(var i = 0; i < 5; i++) {
+    for (var i = 0; i < 5; i++) {
 
         var simAx = 0;
         var simAy = 0;
@@ -198,13 +244,15 @@ function dibujarPuntosPredictivos() {
             //Magnitud de la fuerza gravitacional - crece mucho al acercarse.
             massiveForce = (massiveObjArr[j].constGravitacionalUniversal * massiveObjArr[j].masaAgujeroNegro) / (d * d);
 
+            massiveForce = Math.min(massiveForce, 2000);
+
             //Aceleración final que se suma a la velocidad de la bola por cada frame.
             simAx += (dx / d) * massiveForce;
             simAy += (dy / d) * massiveForce;
 
         }
 
-        
+
 
         //Velocidad actual de la bola en X e Y - se acumula cada frame.
         simVx += simAx * 0.1;
@@ -213,7 +261,7 @@ function dibujarPuntosPredictivos() {
         simX += simVx * 0.1;
         simY += simVy * 0.1;
 
-        if(radioBolasPredictivas <= 1) break;
+        if (radioBolasPredictivas <= 1) break;
 
         ctx.fillStyle = 'red';
         ctx.beginPath();
@@ -232,12 +280,14 @@ function dibujarPuntosPredictivos() {
 
 function actualizarFisica(dt) {
 
-    if (bolaLanzada) {
 
-        for (var i = 0; i < ballsArr.length; i++) {
+    for (var i = 0; i < ballsArr.length; i++) {
+        if (ballsArr[i].lanzada) {
 
             var ax = 0;
             var ay = 0;
+
+            var absorbida = false;
 
             for (var j = 0; j < massiveObjArr.length; j++) {
 
@@ -251,15 +301,24 @@ function actualizarFisica(dt) {
                 //Magnitud de la fuerza gravitacional - crece mucho al acercarse.
                 var massiveForce = (massiveObjArr[j].constGravitacionalUniversal * massiveObjArr[j].masaAgujeroNegro) / (d * d);
 
+                var fuerzaMaxima = 2000;
+                massiveForce = Math.min(massiveForce, fuerzaMaxima);
+
                 //Aceleración final que se suma a la velocidad de la bola por cada frame.
                 ax += (dx / d) * massiveForce;
                 ay += (dy / d) * massiveForce;
 
+
+
                 if (d < massiveObjArr[j].radioVisualAgujeroNegro) {
                     console.log("Juego terminado");
-                    juegoActivo = false;
+                    ballsArr.splice(i, 1);
+                    absorbida = true;
+                    break;
                 }
             }
+
+            if (absorbida) continue;
 
             //bola_vx/vy = Veloicdad actual de la bola en X e Y - se acumula cada frame
             ballsArr[i].bola_vx += ax * dt;
@@ -268,7 +327,7 @@ function actualizarFisica(dt) {
             var velocidadMaxima = 500;
             ballsArr[i].bola_vx = Math.max(-velocidadMaxima, Math.min(velocidadMaxima, ballsArr[i].bola_vx));
             ballsArr[i].bola_vy = Math.max(-velocidadMaxima, Math.min(velocidadMaxima, ballsArr[i].bola_vy));
-            
+
             //Se actualiza la posición de la bola en X e Y con la velocidad actual acumulada en cada frame.
             ballsArr[i].bola_x += ballsArr[i].bola_vx * dt;
             ballsArr[i].bola_y += ballsArr[i].bola_vy * dt;
@@ -281,6 +340,8 @@ function actualizarFisica(dt) {
 /////////////////////////////////
 
 function manageMouseDown(e) {
+
+    if (e.button !== 0) return;
 
     mouseDownX = e.clientX;
     mouseDownY = e.clientY;
@@ -302,17 +363,33 @@ function manageMouseDown(e) {
                     bolaSeleccionada.bola_vx = 0;
                     bolaSeleccionada.bola_vy = 0;
 
+                    bolaSeleccionada.lanzada = false;
+
                     bolaLanzada = false;
+                }
+            }
+
+            for (var j = 0; j < massiveObjArr.length; j++) {
+                dx = mouseDownX - massiveObjArr[j].massivePosX;
+                dy = mouseDownY - massiveObjArr[j].massivePosY;
+
+                d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+                if (d < massiveObjArr[j].radioVisualAgujeroNegro) {
+                    isDragging = true;
+                    draggedObject = massiveObjArr[j];
                 }
             }
 
             break;
         case "addMassive":
             console.log("Creando Massive");
+            massiveObjArr.push(new AgujeroNegro(100, 500000, 50, mouseDownX, mouseDownY, 110))
             activeMode = "throw";
             break;
         case "addBall":
             console.log("Creando bola");
+            ballsArr.push(new Bola(mouseDownX, mouseDownY, 0, 0, 10))
             activeMode = "throw";
             break;
     }
@@ -320,8 +397,14 @@ function manageMouseDown(e) {
 
 function manageMouseUp(e) {
 
+    if (isDragging) {
+        isDragging = false;
+        draggedObject = null;
+        return;
+    }
     if (bolaLanzada) return;
     if (!isClicked) return;
+    
 
 
     bolaSeleccionada.bola_vx = (mouseDownX - e.clientX) * factorLanzamiento;
@@ -329,6 +412,9 @@ function manageMouseUp(e) {
 
     isClicked = false;
     bolaLanzada = true;
+    bolaSeleccionada.lanzada = true;
+
+
 
 }
 
@@ -336,8 +422,13 @@ function manageMouseMove(e) {
 
     mouseCurrentX = e.clientX;
     mouseCurrentY = e.clientY;
-    
-}   
+
+    if (isDragging) {
+        draggedObject.massivePosX = mouseCurrentX;
+        draggedObject.massivePosY = mouseCurrentY;
+    }
+
+}
 
 
 function manageThrowButton(e) {
@@ -359,6 +450,59 @@ function manageAddBallButton(e) {
     activeMode = "addBall";
     e.stopPropagation();
 
+}
+
+function manageRightClick(e) {
+
+    mouseDownX = e.clientX;
+    mouseDownY = e.clientY;
+
+    e.preventDefault();
+
+    for (var i = 0; i < ballsArr.length; i++) {
+        dx = mouseDownX - ballsArr[i].bola_x;
+        dy = mouseDownY - ballsArr[i].bola_y;
+
+        d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+        if (d < ballsArr[i].bola_radio) {
+            selectedObject = ballsArr[i];
+            document.getElementById("ballMenu").style.display = "flex";
+            document.getElementById("massiveMenu").style.display = "none";
+
+            document.getElementById("sliderRadioBall").value = selectedObject.bola_radio;
+            document.getElementById("valorRadioBall").textContent = selectedObject.bola_radio;
+
+            return;
+        }
+    }
+
+    for (var j = 0; j < massiveObjArr.length; j++) {
+        dx = mouseDownX - massiveObjArr[j].massivePosX;
+        dy = mouseDownY - massiveObjArr[j].massivePosY;
+
+        d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+        if (d < massiveObjArr[j].radioVisualAgujeroNegro) {
+            selectedObject = massiveObjArr[j];
+            document.getElementById("ballMenu").style.display = "none";
+            document.getElementById("massiveMenu").style.display = "flex";
+
+            document.getElementById("visualRadioMassive").value = selectedObject.radioVisualAgujeroNegro;
+            document.getElementById("valueRadioMassive").textContent = selectedObject.radioVisualAgujeroNegro;
+
+            document.getElementById("massMassive").value = selectedObject.masaAgujeroNegro;
+            document.getElementById("valueMassMassive").textContent = selectedObject.masaAgujeroNegro;
+
+            document.getElementById("gravitationalConstMassive").value = selectedObject.constGravitacionalUniversal;
+            document.getElementById("valueGravitationalConstMassive").textContent = selectedObject.constGravitacionalUniversal;
+
+            document.getElementById("cVelocityMassive").value = selectedObject.cVelocity;
+            document.getElementById("valueCVelocityMassive").textContent = selectedObject.cVelocity;
+
+            return;
+        }
+    }
 }
 
 requestAnimationFrame(gameLoop);

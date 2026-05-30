@@ -32,3 +32,34 @@ body {
     font-weight: bold;
     cursor: pointer;
 }
+
+.propMenu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: none;
+
+    font-size: 25px;
+    padding: 12px 24px;
+    background-color: black;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.propMenu button {
+    font-size: 12.5;
+    padding: 12px, 24px;
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+}
+

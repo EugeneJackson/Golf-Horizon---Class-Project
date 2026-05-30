@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizon Sandbox</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <canvas id="myCanvas"></canvas>
+
+    <div class="toolBar">
+        <button id="throwButton">Lanzar</button>
+        <button id="addMassiveButton">+ Agujero Negro</button>
+        <button id="addBallButton">+ Bola</button>
+    </div>
+
+    <div class="propMenu" id="ballMenu">
+        <label>Radio de la Bola</label>
+        <input type="range" min="5" max="50" value="10" id="sliderRadioBall">
+        <span id="valorRadioBall">100</span>
+        <button id="deleteBallButton">Eliminar</button>
+    </div>
+
+    <div class="propMenu" id="massiveMenu">
+        <label>Radio visual agujero negro.</label>
+        <input type="range" min="20" max="300" value="100" id="visualRadioMassive">
+        <span id="valueRadioMassive">100</span>
+
+        <label>Masa agujero negro.</label>
+        <input type="range" min="100000" max="2000000" value="50000" id="massMassive">
+        <span id="valueMassMassive">50000</span>
+
+        <label>Constante gravitacional</label>
+        <input type="range" min="10" max="500" value="20" id="gravitationalConstMassive">
+        <span id="valueGravitationalConstMassive">100</span>
+
+        <label>Velocidad de la luz (cVelocity)</label>
+        <input type="range" min="10" max="200" value="100" id="cVelocityMassive">
+        <span id="valueCVelocityMassive">100</span>
+
+        <button id="deleteMassiveButton">Eliminar</button>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
