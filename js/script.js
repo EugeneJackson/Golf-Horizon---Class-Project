@@ -201,7 +201,7 @@ function dibujarLineaDireccionLanzamiento() {
     ctx.beginPath();
     ctx.moveTo(bolaSeleccionada.bola_x, bolaSeleccionada.bola_y);
     ctx.lineTo(mouseCurrentX, mouseCurrentY);
-    ctx.strokeStyle = 'rgba(0, 255, 255, 0.4';
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
     ctx.lineWidth = 5;
     ctx.stroke();
 }
