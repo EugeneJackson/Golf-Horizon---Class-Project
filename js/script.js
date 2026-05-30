@@ -59,7 +59,7 @@ var massiveObjArr = [];
 var ballsArr = [];
 
 
-massiveObjArr.push(new AgujeroNegro(100, 500000, 50, x_massive, y_massive, 110));
+massiveObjArr.push(new AgujeroNegro(100, 100000, 50, x_massive, y_massive, 110));
 ballsArr.push(new Bola(c.width / 4, c.height / 1.3, 0, 0, 10));
 
 var bolaSeleccionada = null;
@@ -116,11 +116,6 @@ document.getElementById("gravitationalConstMassive").addEventListener('input', f
     document.getElementById("valueGravitationalConstMassive").textContent = e.target.value;
 })
 
-document.getElementById("cVelocityMassive").addEventListener('input', function (e) {
-    selectedObject.cVelocity = e.target.value;
-    document.getElementById("valueCVelocityMassive").textContent = e.target.value;
-})
-
 document.getElementById("deleteBallButton").addEventListener('click', function (e) {
     var index = ballsArr.indexOf(selectedObject);
     ballsArr.splice(index, 1);
@@ -147,6 +142,7 @@ function gameLoop(tiempoActual) {
     tiempoAnterior = tiempoActual;
 
     ctx.clearRect(0, 0, c.width, c.height);
+    dibujarGrid();
     actualizarFisica(dt);
     dibujarAgujeroNegro();
     dibujarBola();
@@ -184,12 +180,11 @@ function dibujarAgujeroNegro() {
 function dibujarBola() {
 
     for (var i = 0; i < ballsArr.length; i++) {
-        ctx.fillStyle = '#7EBDC2';
+        ctx.fillStyle = '#00FFFF';
         ctx.beginPath();
 
         ctx.arc(ballsArr[i].bola_x, ballsArr[i].bola_y, ballsArr[i].bola_radio, 0, 2 * Math.PI);
         ctx.fill();
-        ctx.stroke();
     }
 
 }
@@ -206,9 +201,29 @@ function dibujarLineaDireccionLanzamiento() {
     ctx.beginPath();
     ctx.moveTo(bolaSeleccionada.bola_x, bolaSeleccionada.bola_y);
     ctx.lineTo(mouseCurrentX, mouseCurrentY);
-    ctx.strokeStyle = 'white';
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.4';
     ctx.lineWidth = 5;
     ctx.stroke();
+}
+
+
+function dibujarGrid() {
+    for(var i = 0; i < c.width; i += 50) {
+
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, c.height);
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.1)";
+        ctx.stroke();
+    }
+
+    for(var i = 0; i < c.height; i += 50) {
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(c.width, i);
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.1)";
+        ctx.stroke();
+    }
 }
 
 /////////////////////////////////
@@ -219,7 +234,7 @@ function dibujarPuntosPredictivos() {
 
     if (!isClicked) return;
 
-    var radioBolasPredictivas = 3;
+    var radioBolasPredictivas = 4;
 
     var simVx = (mouseDownX - mouseCurrentX) * factorLanzamiento;
     var simVy = (mouseDownY - mouseCurrentY) * factorLanzamiento;
@@ -263,11 +278,10 @@ function dibujarPuntosPredictivos() {
 
         if (radioBolasPredictivas <= 1) break;
 
-        ctx.fillStyle = 'red';
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.4';
         ctx.beginPath();
         ctx.arc(simX, simY, radioBolasPredictivas, 0, 2 * Math.PI);
         ctx.fill();
-        ctx.stroke();
 
         radioBolasPredictivas -= 0.5;
 
@@ -301,7 +315,7 @@ function actualizarFisica(dt) {
                 //Magnitud de la fuerza gravitacional - crece mucho al acercarse.
                 var massiveForce = (massiveObjArr[j].constGravitacionalUniversal * massiveObjArr[j].masaAgujeroNegro) / (d * d);
 
-                var fuerzaMaxima = 2000;
+                var fuerzaMaxima = 5000;
                 massiveForce = Math.min(massiveForce, fuerzaMaxima);
 
                 //Aceleración final que se suma a la velocidad de la bola por cada frame.
@@ -496,9 +510,6 @@ function manageRightClick(e) {
 
             document.getElementById("gravitationalConstMassive").value = selectedObject.constGravitacionalUniversal;
             document.getElementById("valueGravitationalConstMassive").textContent = selectedObject.constGravitacionalUniversal;
-
-            document.getElementById("cVelocityMassive").value = selectedObject.cVelocity;
-            document.getElementById("valueCVelocityMassive").textContent = selectedObject.cVelocity;
 
             return;
         }

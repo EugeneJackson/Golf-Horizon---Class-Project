@@ -1,0 +1,57 @@
+* {
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    display: flex;
+    background-color: black;
+    height: 100vh;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+body h1 {
+    font-family: Goldman;
+    font-size: 100px;
+    color: white;
+}
+
+.horizonSandboxMenu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+}
+
+.horizonSandboxMenu a {
+    display: flex;
+    color: white;
+    border: 1px solid white;
+    text-align: center;
+    justify-content: center;
+    padding: 10px;
+    font-size: 40px;
+    font-family: Goldman;
+    text-decoration: none;
+    transition: 0.4s;
+    background-color: black;
+}
+
+.horizonSandboxMenu a:hover {
+    border: 1px solid red;
+    color: red;
+}
+
+#menuCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+
+
